@@ -1,4 +1,4 @@
-#include <header.h>
+#include "../headers/header.h"
 void main(void)
 {
     struct message m1, m2; /* áreas p/mensagens */
