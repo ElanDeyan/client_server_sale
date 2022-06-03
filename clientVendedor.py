@@ -22,7 +22,7 @@ leilao = ProcessLeilao()
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
-dados_leilao = []
+#! dados_leilao = []
 
 
 def criar_leilao():
@@ -34,25 +34,21 @@ def criar_leilao():
 
 def enviar_nome():
     nome = input('Digite o seu nome: ')
-    # criar_lista_leilao("nome=" + nome)
     leilao.nome = nome
 
 def enviar_produto():
     produto = input('Digite o nome do produto a leiloar: ')
-    # criar_lista_leilao("produto=" + produto)
     leilao.produto = produto
 
 def enviar_desc_produto():
     desc_produto = input('Digite uma breve descricao de seu produto: ')
-    #criar_lista_leilao("desc_produto=" + desc_produto)
     leilao.descProduto = desc_produto
 
 def valor_inicial_produto():
     while(True):
         valor_inicial = float(input("Digite um valor inicial para seu produto: "))
         if(type(valor_inicial) == float):
-            #criar_lista_leilao(f"valor_inicial={valor_inicial}")
-            leilao.valorInicial = f"valor_inicial={valor_inicial}"
+            leilao.valorInicial = valor_inicial
             break
         else:
             print("Por favor, insira um valor válido.")
@@ -63,11 +59,21 @@ def iniciar_leilao():
     enviar_desc_produto()
     valor_inicial_produto()
     criar_leilao()
+    print(client.recv(2048).decode())
 
 
 def iniciar():
-    thread1 = threading.Thread(target=iniciar_leilao)
-    thread1.start()
+    print("Bem-vindo ao leilão\nDeseja criar um novo leilão ou encerrar?")
+    while(True):
+        opcao = int(input("Digite 1 para criar\nDigite 2 para encerrar: "))
+        if(opcao == 1):
+            iniciar_leilao()
+        elif(opcao == 2):
+            print("Ainda não disponível")
+        else:
+            print("Por favor escolha uma das opcoes acima")
+    #thread1 = threading.Thread(target=iniciar_leilao)
+    #thread1.start()
 
 iniciar()
 
