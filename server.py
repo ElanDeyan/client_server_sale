@@ -11,7 +11,6 @@ FORMAT = 'utf-8'
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
-conexoes = []
 leiloes = []
 id_leilao = 0
 
@@ -34,7 +33,6 @@ def enviar_mensagem_todos():
 def handle_clientes(conn, addr):
     client_type = conn.recv(64).decode()
     client_type = int(client_type)
-    global conexoes
     global id_leilao
     if(client_type == 1):
         print(f"[NOVA CONEXAO] Um novo usuario entrou com o endereco '{addr}'")
