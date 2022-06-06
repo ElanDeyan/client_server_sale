@@ -26,7 +26,7 @@ client.send(CLIENT_ID.encode(encoding=FORMAT))
 
 def criar_leilao():
     leilao_as_dict = vars(leilao)
-    leilao_string = json.dumps(leilao_as_dict)
+    leilao_string = json.dumps(leilao_as_dict, ensure_ascii=True)
     time.sleep(1)
     client.send(leilao_string.encode(encoding=FORMAT))
 
@@ -44,11 +44,15 @@ def enviar_desc_produto():
 
 def valor_inicial_produto():
     while(True):
-        valor_inicial = float(input("Digite um valor inicial para seu produto: "))
-        if(type(valor_inicial) == float):
-            leilao.valorInicial = valor_inicial
-            break
-        else:
+        try:
+            valor_inicial = input("Digite um valor inicial para seu produto: ")
+            if(float(valor_inicial)):
+                valor_inicial = float(valor_inicial)
+                leilao.valorInicial = valor_inicial
+                break
+            else:
+                print("Por favor, insira um valor válido.", flush=True)
+        except ValueError:
             print("Por favor, insira um valor válido.", flush=True)
 
 def iniciar_leilao():
@@ -57,10 +61,10 @@ def iniciar_leilao():
     enviar_desc_produto()
     valor_inicial_produto()
     criar_leilao()
-    print(client.recv(2048).decode(), flush=True)
+    print(client.recv(5000000).decode(), flush=True)
 
 def encerrar_leilao():
-    server_recv = client.recv(50000).decode()
+    server_recv = client.recv(5000000).decode()
     print(server_recv, flush=True)
     while(True):
         if(server_recv.startswith("[ALERTA]")):
@@ -74,35 +78,25 @@ def encerrar_leilao():
         else:
             print("Insira um inteiro válido", flush=True)
 
-def iniciar():
+def iniciar_vendedor():
     print("Bem-vindo ao leilão\nDeseja criar um novo leilão ou encerrar?")
     while(True):
-        opcao = input("\nDigite 1 para criar\nDigite 2 para encerrar: ")
-        if(opcao == 1):
-            client.send("CREATE".encode(encoding=FORMAT))
-            iniciar_leilao()
-        elif(opcao == 2):
-            client.send("DELETE".encode(encoding=FORMAT))
-            encerrar_leilao()
-        else:
+        try:
+            opcao = input("\nDigite 1 para criar\nDigite 2 para encerrar: ")
+            opcao = int(opcao)
+            if(opcao == 1):
+                client.send("CREATE".encode(encoding=FORMAT))
+                iniciar_leilao()
+            elif(opcao == 2):
+                client.send("DELETE".encode(encoding=FORMAT))
+                encerrar_leilao()
+            else:
+                client.send("ERROR".encode(encoding=FORMAT))
+                print(client.recv(2048).decode(), flush=True)
+        except ValueError:
             client.send("ERROR".encode(encoding=FORMAT))
             print(client.recv(2048).decode(), flush=True)
     #thread1 = threading.Thread(target=iniciar_leilao)
     #thread1.start()
 
-iniciar()
-
-# comentário
-"""
-
-def handle_mensagens():
-    while(True):
-        msg = client.recv(2048).decode()
-        mensagem_split = msg.split("=")
-        print(mensagem_split[1] + ": " + mensagem_split[2])
-
-def enviar_mensagem():
-    while(True):
-        mensagem = input()
-        enviar("msg=" + mensagem)
-"""
+iniciar_vendedor()

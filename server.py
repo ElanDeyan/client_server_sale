@@ -40,19 +40,20 @@ def handle_clientes(conn, addr):
     global id_leilao
     if(client_type == 1):
         print(f"[NOVA CONEXAO] Um novo usuario entrou com o endereco '{addr}'")
-        print("CLiente eh vendedor")
+        print("Cliente eh vendedor")
         while(True):
             client_op = conn.recv(64).decode()
             print(client_op,flush=True)
             if(client_op == "CREATE"):
-                leilao_encoded = conn.recv(2048)
-                leilao_string = leilao_encoded.decode(encoding=FORMAT)
+                leilao_encoded = conn.recv(5000000)
+                leilao_string = leilao_encoded.decode()
                 leilao_dados = json.loads(leilao_string)
                 if(leilao_dados):
+                    conn.send(f"Recebido!\nO indice de seu produto eh {id_leilao}".encode(encoding=FORMAT))
                     leilao_dados["id"] = id_leilao
                     leilao_dados["id_address"] = addr[1]
+                    leilao_dados["estado_leilao"] = "Aberto"
                     leiloes.append(leilao_dados)
-                    conn.send(f"Recebido!\nO indice de seu produto eh {id_leilao}".encode(encoding=FORMAT))
                     tabela = ''
                     for item in leiloes:
                         tabela += f"{item}\n"
@@ -65,7 +66,7 @@ def handle_clientes(conn, addr):
                     leiloes_cliente_array = []
                     leiloes_cliente = 'Certo! Estes são os leilões que você enviou:\n'
                     for leilao in leiloes:
-                        if(leilao["id_address"] == addr[1]):
+                        if(leilao["id_address"] == addr[1] and leilao["estado_leilao"] == "Aberto"):
                             leiloes_cliente_array.append(leilao)
                             leiloes_cliente += f"{leilao}\n"
                     if(leiloes_cliente != 'Certo! Estes são os leilões que você enviou:\n'):
@@ -76,23 +77,30 @@ def handle_clientes(conn, addr):
                         msg = ''
                         for leilao_cliente in leiloes_cliente_array:
                             if(leilao_cliente["id"] == id_leilao_del):
-                                id_encontrado = not id_encontrado
+                                leiloes[id_leilao_del]["estado_leilao"] = "Encerrado"
                                 msg = f"Leilão encerrado!\n{leilao_cliente}"
-                                print(f"id leilao del: {id_leilao_del}")
-                                leiloes.remove(leilao_cliente)
                                 break
                             else:
-                                id_encontrado = False
                                 msg = "Id não encontrado em sua lista de leiloes"
                         conn.send(msg.encode(encoding=FORMAT))
                     else:
-                        conn.send("Não encontrei nenhum leilão criado por você.".encode(encoding=FORMAT))
+                        conn.send("[ALERTA] Não encontrei nenhum leilão em aberto criado por você.".encode(encoding=FORMAT))
             else:
                 conn.send("Operação inexistente".encode(encoding=FORMAT))
     elif(client_type == 2):
+        print(f"[NOVA CONEXAO] Um novo usuario entrou com o endereco '{addr}'")
         print("Cliente eh comprador")
         while(True):
-            pass
+            client_op = conn.recv(64).decode()
+            print(client_op,flush=True)
+            if(client_op == "READ"):
+                leiloes_list = ''
+                for leilao in leiloes:
+                    leiloes_list += f"{leilao}"
+            elif(client_op == "UPDATE"):
+                pass
+            else:
+                conn.send("Operação inexistente".encode(encoding=FORMAT))
     else:
         print("Algo deu errado com a identificação do cliente")
 def start():
