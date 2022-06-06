@@ -14,8 +14,6 @@ server.bind(ADDR)
 conexoes = []
 leiloes = []
 id_leilao = 0
-def iniciar_leilao():
-    pass
 
 #TODO: Ajustar para responder aquilo que o cliente pedir
 """
@@ -96,9 +94,25 @@ def handle_clientes(conn, addr):
             if(client_op == "READ"):
                 leiloes_list = ''
                 for leilao in leiloes:
-                    leiloes_list += f"{leilao}"
+                    leiloes_list += f"{leilao}\n"
+                print(leiloes_list)
+                conn.send(leiloes_list.encode(encoding=FORMAT))
             elif(client_op == "UPDATE"):
-                pass
+                leilao_encontrado = ''
+                leiloes_list = ''
+                for leilao in leiloes:
+                    leiloes_list += f"{leilao}\n"
+                conn.send(leiloes_list.encode(encoding=FORMAT))
+                id_lance = conn.recv(2048).decode()
+                id_lance = int(id_lance)
+                for leilao in leiloes:
+                    if(leilao["id"] == id_lance and leilao["estado_leilao"] == "Aberto"):
+                        leilao_encontrado = leilao
+                        break
+                    else:
+                        conn.send("Insira id entre os apresentados".encode(encoding=FORMAT))
+                conn.send("Certo, agora diga-me o lance a fazer".encode(encoding=FORMAT))
+                conn.recv(2048).decode()
             else:
                 conn.send("Operação inexistente".encode(encoding=FORMAT))
     else:

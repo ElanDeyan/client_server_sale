@@ -14,8 +14,19 @@ client.connect(ADDR)
 client.send(CLIENT_ID.encode(encoding=FORMAT))
 
 def ver_lances():
-    client.recv(500000000).decode()
-    
+    print(client.recv(500000000).decode(), flush=True)
+
+def fazer_lance():
+    print(client.recv(500000000).decode(), flush=True)
+    while(True):
+        try:
+            id_lance = input("Por favor, diga o id do artigo que deseja fazer um lance: ")
+            if(id_lance.isdigit()):
+                client.send(id_lance.encode(encoding=FORMAT))
+                break
+        except ValueError:
+            print(client.recv(2048).decode(), flush=True)
+    print(client.recv(4096).decode(), flush=True)
 
 def iniciar_comprador():
     print("Bem-vindo ao leilão\nDeseja ver os leilões em aberto ou fazer um lance?")
