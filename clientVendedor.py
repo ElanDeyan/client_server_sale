@@ -11,7 +11,7 @@ PORT = 50007
 FORMAT = 'utf-8'
 SERVER = '127.0.0.1'
 ADDR = (SERVER, PORT)
-
+CLIENT_ID = '1'
 class ProcessLeilao:
     nome = ''
     produto = ''
@@ -22,14 +22,12 @@ leilao = ProcessLeilao()
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
-#! dados_leilao = []
-
+client.send(CLIENT_ID.encode(encoding=FORMAT))
 
 def criar_leilao():
     leilao_as_dict = vars(leilao)
     leilao_string = json.dumps(leilao_as_dict)
-    print(leilao_string)
-    time.sleep(10)
+    time.sleep(1)
     client.send(leilao_string.encode(encoding=FORMAT))
 
 def enviar_nome():
@@ -51,7 +49,7 @@ def valor_inicial_produto():
             leilao.valorInicial = valor_inicial
             break
         else:
-            print("Por favor, insira um valor válido.")
+            print("Por favor, insira um valor válido.", flush=True)
 
 def iniciar_leilao():
     enviar_nome()
@@ -59,19 +57,32 @@ def iniciar_leilao():
     enviar_desc_produto()
     valor_inicial_produto()
     criar_leilao()
-    print(client.recv(2048).decode())
+    print(client.recv(2048).decode(), flush=True)
 
+def encerrar_leilao():
+    print(client.recv(50000).decode(), flush=True)
+    while(True):
+        id_to_be_deleted = input()
+        time.sleep(0.5)
+        if(id_to_be_deleted.isdigit()):
+            client.send(id_to_be_deleted.encode(encoding=FORMAT))
+            break
+        else:
+            print("Insira um inteiro válido", flush=True)
+    print(client.recv(50000).decode(), flush=True)
 
 def iniciar():
     print("Bem-vindo ao leilão\nDeseja criar um novo leilão ou encerrar?")
     while(True):
-        opcao = int(input("Digite 1 para criar\nDigite 2 para encerrar: "))
+        opcao = int(input("\nDigite 1 para criar\nDigite 2 para encerrar: "))
         if(opcao == 1):
+            client.send("CREATE".encode(encoding=FORMAT))
             iniciar_leilao()
         elif(opcao == 2):
-            print("Ainda não disponível")
+            client.send("DELETE".encode(encoding=FORMAT))
+            encerrar_leilao()
         else:
-            print("Por favor escolha uma das opcoes acima")
+            print("Por favor escolha uma das opcoes acima", flush=True)
     #thread1 = threading.Thread(target=iniciar_leilao)
     #thread1.start()
 
@@ -79,13 +90,13 @@ iniciar()
 
 # comentário
 """
+
 def handle_mensagens():
     while(True):
         msg = client.recv(2048).decode()
         mensagem_split = msg.split("=")
         print(mensagem_split[1] + ": " + mensagem_split[2])
-"""
-"""
+
 def enviar_mensagem():
     while(True):
         mensagem = input()
