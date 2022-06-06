@@ -14,7 +14,6 @@ server.bind(ADDR)
 conexoes = []
 leiloes = []
 id_leilao = 0
-leiloes_cliente_array = []
 def iniciar_leilao():
     pass
 
@@ -44,6 +43,7 @@ def handle_clientes(conn, addr):
         print("CLiente eh vendedor")
         while(True):
             client_op = conn.recv(64).decode()
+            print(client_op,flush=True)
             if(client_op == "CREATE"):
                 leilao_encoded = conn.recv(2048)
                 leilao_string = leilao_encoded.decode(encoding=FORMAT)
@@ -52,18 +52,17 @@ def handle_clientes(conn, addr):
                     leilao_dados["id"] = id_leilao
                     leilao_dados["id_address"] = addr[1]
                     leiloes.append(leilao_dados)
-                    conn.send(f"Recebido!\nO indice de seu produto eh {len(leiloes)-1}".encode(encoding=FORMAT))
+                    conn.send(f"Recebido!\nO indice de seu produto eh {id_leilao}".encode(encoding=FORMAT))
                     tabela = ''
                     for item in leiloes:
                         tabela += f"{item}\n"
                     print(tabela)
-                    
                 id_leilao += 1
-                #* Pra mandar essa tabela, acho que pro cliente comprador conn.send(tabela.encode(encoding=FORMAT))
             elif(client_op == "DELETE"):
                 if(len(leiloes) == 0):
-                    conn.send("Não há leilões existentes, quer criar um?".encode(encoding=FORMAT))
+                    conn.send("[ALERTA] Não há leilões existentes, quer criar um?".encode(encoding=FORMAT))
                 else:
+                    leiloes_cliente_array = []
                     leiloes_cliente = 'Certo! Estes são os leilões que você enviou:\n'
                     for leilao in leiloes:
                         if(leilao["id_address"] == addr[1]):
@@ -77,18 +76,19 @@ def handle_clientes(conn, addr):
                         msg = ''
                         for leilao_cliente in leiloes_cliente_array:
                             if(leilao_cliente["id"] == id_leilao_del):
+                                id_encontrado = not id_encontrado
                                 msg = f"Leilão encerrado!\n{leilao_cliente}"
-                                leiloes.pop(id_leilao_del)
-                                print("Passei do pop")
-                                conn.send(msg.encode(encoding=FORMAT))
+                                print(f"id leilao del: {id_leilao_del}")
+                                leiloes.remove(leilao_cliente)
+                                break
                             else:
+                                id_encontrado = False
                                 msg = "Id não encontrado em sua lista de leiloes"
-                                conn.send(msg.encode(encoding=FORMAT))
-                                print("Enviei")
+                        conn.send(msg.encode(encoding=FORMAT))
                     else:
                         conn.send("Não encontrei nenhum leilão criado por você.".encode(encoding=FORMAT))
             else:
-                print("Opcao inexistente")
+                conn.send("Operação inexistente".encode(encoding=FORMAT))
     elif(client_type == 2):
         print("Cliente eh comprador")
         while(True):

@@ -60,21 +60,24 @@ def iniciar_leilao():
     print(client.recv(2048).decode(), flush=True)
 
 def encerrar_leilao():
-    print(client.recv(50000).decode(), flush=True)
+    server_recv = client.recv(50000).decode()
+    print(server_recv, flush=True)
     while(True):
+        if(server_recv.startswith("[ALERTA]")):
+            break
         id_to_be_deleted = input()
         time.sleep(0.5)
         if(id_to_be_deleted.isdigit()):
             client.send(id_to_be_deleted.encode(encoding=FORMAT))
+            print(client.recv(50000).decode(), flush=True)
             break
         else:
             print("Insira um inteiro válido", flush=True)
-    print(client.recv(50000).decode(), flush=True)
 
 def iniciar():
     print("Bem-vindo ao leilão\nDeseja criar um novo leilão ou encerrar?")
     while(True):
-        opcao = int(input("\nDigite 1 para criar\nDigite 2 para encerrar: "))
+        opcao = input("\nDigite 1 para criar\nDigite 2 para encerrar: ")
         if(opcao == 1):
             client.send("CREATE".encode(encoding=FORMAT))
             iniciar_leilao()
@@ -82,7 +85,8 @@ def iniciar():
             client.send("DELETE".encode(encoding=FORMAT))
             encerrar_leilao()
         else:
-            print("Por favor escolha uma das opcoes acima", flush=True)
+            client.send("ERROR".encode(encoding=FORMAT))
+            print(client.recv(2048).decode(), flush=True)
     #thread1 = threading.Thread(target=iniciar_leilao)
     #thread1.start()
 
