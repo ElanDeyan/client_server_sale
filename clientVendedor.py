@@ -9,7 +9,7 @@ import json
 
 PORT = 50007
 FORMAT = 'utf-8'
-SERVER = '127.0.0.1'
+SERVER = '127.0.0.1' # '10.0.2.2'
 ADDR = (SERVER, PORT)
 CLIENT_ID = '1'
 class ProcessLeilao:
