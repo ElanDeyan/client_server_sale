@@ -106,41 +106,43 @@ def handle_clientes(conn, addr):
                     if(leilao["estado_leilao"] == "Aberto"):
                         leiloes_list += f"{leilao}\n"
                 if(leiloes_list == ''):
-                    msg = "Não temos leilões disponíveis"
+                    msg = "[ALERTA] Não temos leilões disponíveis"
+                    conn.send(msg.encode(encoding=FORMAT))
                 else:
                     msg = leiloes_list
-                conn.send(msg.encode(encoding=FORMAT))
-                id_lance = conn.recv(2048).decode()
-                id_lance = int(id_lance)
-                for leilao in leiloes:
-                    if(leilao["id"] == id_lance and leilao["estado_leilao"] == "Aberto"):
-                        leilao_encontrado = leilao
-                        break
+                    conn.send(msg.encode(encoding=FORMAT))
+                    id_lance = int(conn.recv(2048).decode())
+                    print(id_lance)
+                    for leilao in leiloes:
+                        if(leilao["id"] == id_lance and leilao["estado_leilao"] == "Aberto"):
+                            leilao_encontrado = leilao
+                            break
+                    if(leilao_encontrado != ''):
+                        conn.send("Certo, agora diga-me o lance a fazer".encode(encoding=FORMAT))
+                        msg = ''
+                        while(True):
+                            valor_lance = conn.recv(2048).decode()
+                            valor_lance = float(valor_lance)
+                            if(valor_lance < leilao_encontrado["valorInicial"]):
+                                conn.send("Por favor, faça um lance igual ou maior que o lance mínimo".encode(encoding=FORMAT))
+                            else:
+                                leilao_encontrado["maior_lance"] = 0
+                                if(valor_lance > leilao_encontrado["maior_lance"]):
+                                    leilao_encontrado["maior_lance"] = valor_lance
+                                    msg = "É o maior lance até o momento!\nQual seu email para que, quando acabar, possamos entrar em contato?"
+                                    conn.send(msg.encode(encoding=FORMAT))
+                                    email_vencedor = conn.recv(4096).decode()
+                                    leilao_encontrado["email_vencedor"] = email_vencedor
+                                    conn.send("Dados recebidos e cadastrados! Obrigado".encode(encoding=FORMAT))
+                                elif(valor_lance == leilao_encontrado["maior_lance"]):
+                                    msg = "É igual ao maior lance, o anterior ainda fica com o título quando encerrarem."
+                                    conn.send(msg.encode(encoding=FORMAT))
+                                else:
+                                    msg = "É menor que o maior lance..."
+                                    conn.send(msg.encode(encoding=FORMAT))
+                                break
                     else:
-                        conn.send("Insira id entre os apresentados".encode(encoding=FORMAT))
-                conn.send("Certo, agora diga-me o lance a fazer".encode(encoding=FORMAT))
-                msg = ''
-                while(True):
-                    valor_lance = conn.recv(2048).decode()
-                    valor_lance = float(valor_lance)
-                    if(valor_lance < leilao_encontrado["valorInicial"]):
-                        conn.send("Por favor, faça um lance igual ou maior que o lance mínimo".encode(encoding=FORMAT))
-                    else:
-                        leilao_encontrado["maior_lance"] = 0
-                        if(valor_lance > leilao_encontrado["maior_lance"]):
-                            leilao_encontrado["maior_lance"] = valor_lance
-                            msg = "É o maior lance até o momento!\nQual seu email para que, quando acabar, possamos entrar em contato?"
-                            conn.send(msg.encode(encoding=FORMAT))
-                            email_vencedor = conn.recv(4096).decode()
-                            leilao_encontrado["email_vencedor"] = email_vencedor
-                            conn.send("Dados recebidos e cadastrados! Obrigado".encode(encoding=FORMAT))
-                        elif(valor_lance == leilao_encontrado["maior_lance"]):
-                            msg = "É igual ao maior lance, o anterior ainda fica com o título quando encerrarem."
-                            conn.send(msg.encode(encoding=FORMAT))
-                        else:
-                            msg = "É menor que o maior lance..."
-                            conn.send(msg.encode(encoding=FORMAT))
-                        break
+                        conn.send("[ALERTA] Leilão não encontrado".encode(encoding=FORMAT))
             else:
                 conn.send("Operação inexistente".encode(encoding=FORMAT))
     else:
