@@ -4,7 +4,7 @@ import json
 
 PORT = 50007
 FORMAT = 'utf-8'
-SERVER = '127.0.0.1' # '10.0.2.2'
+SERVER = '10.0.2.2'
 ADDR = (SERVER, PORT)
 CLIENT_ID = '1'
 class ProcessLeilao:
@@ -81,9 +81,9 @@ def iniciar_vendedor():
                 encerrar_leilao()
             else:
                 client.send("ERROR".encode(encoding=FORMAT))
-                print(client.recv(2048).decode(), flush=True)
+                print(client.recv(500000).decode(), flush=True)
         except ValueError:
             client.send("ERROR".encode(encoding=FORMAT))
-            print(client.recv(2048).decode(), flush=True)
+            print(client.recv(50000).decode(), flush=True)
 
 iniciar_vendedor()

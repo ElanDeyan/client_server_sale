@@ -81,7 +81,7 @@ def handle_clientes(conn, addr):
         print(f"[NOVA CONEXAO] Um novo usuario entrou com o endereco '{addr}'")
         print("Cliente eh comprador")
         while(True):
-            client_op = conn.recv(64).decode()
+            client_op = conn.recv(128).decode()
             print(client_op,flush=True)
             if(client_op == "READ"):
                 leiloes_list = ''
@@ -104,7 +104,12 @@ def handle_clientes(conn, addr):
                 leiloes_list = ''
                 for leilao in leiloes:
                     if(leilao["estado_leilao"] == "Aberto"):
-                        leiloes_list += f"{leilao}\n"
+                        id_leilao_atual = leilao["id"]
+                        nome_leilao_atual = leilao["nome"]
+                        desc_leilao_atual = leilao["descProduto"]
+                        lance_minimo = leilao["valorInicial"]
+                        maior_lance_atual = leilao["maior_lance"]
+                        leiloes_list += f"Id: {id_leilao_atual} | Nome: {nome_leilao_atual} | Descrição: {desc_leilao_atual} | Lance mínimo: {lance_minimo}| Maior lance: {maior_lance_atual}\n"
                 if(leiloes_list == ''):
                     msg = "[ALERTA] Não temos leilões disponíveis"
                     conn.send(msg.encode(encoding=FORMAT))
@@ -125,6 +130,7 @@ def handle_clientes(conn, addr):
                             valor_lance = float(valor_lance)
                             if(valor_lance < leilao_encontrado["valorInicial"]):
                                 conn.send("Por favor, faça um lance igual ou maior que o lance mínimo".encode(encoding=FORMAT))
+                                break
                             else:
                                 leilao_encontrado["maior_lance"] = 0
                                 if(valor_lance > leilao_encontrado["maior_lance"]):

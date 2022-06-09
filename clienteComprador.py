@@ -2,7 +2,7 @@ import socket
 
 PORT = 50007
 FORMAT = 'utf-8'
-SERVER = '127.0.0.1' # '10.0.2.2'
+SERVER = '10.0.2.2'
 ADDR = (SERVER, PORT)
 CLIENT_ID = '2'
 
@@ -17,7 +17,7 @@ def fazer_lance():
     resp_server = client.recv(500000000).decode()
     print(resp_server, flush=True)
     if(resp_server.startswith("[ALERTA]")):
-        return
+        pass
     else:
         while(True):
             try:
