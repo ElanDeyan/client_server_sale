@@ -1,4 +1,3 @@
-import time
 import socket
 import threading
 import json
@@ -13,22 +12,6 @@ server.bind(ADDR)
 
 leiloes = []
 id_leilao = 0
-
-#TODO: Ajustar para responder aquilo que o cliente pedir
-"""
-def enviar_mensagem_individual(connection):
-    print(f"[ENVIANDO] Enviando mensagem para {connection['addr']}")
-    for i in range(connection['last'], len(mensagens)):
-        mensagem_de_envio = "msg=" + mensagens[i]
-        connection['conn'].send(mensagem_de_envio.encode(FORMAT))
-        connection['last'] = i + 1
-        time.sleep(0.5)
-
-def enviar_mensagem_todos():
-    global conexoes
-    for conexao in conexoes:
-        enviar_mensagem_individual(conexao)
-"""
 
 def handle_clientes(conn, addr):
     client_type = conn.recv(64).decode()
@@ -49,6 +32,8 @@ def handle_clientes(conn, addr):
                     leilao_dados["id"] = id_leilao
                     leilao_dados["id_address"] = addr[1]
                     leilao_dados["estado_leilao"] = "Aberto"
+                    leilao_dados["maior_lance"] = leilao_dados["valorInicial"]
+                    leilao_dados["email_vencedor"] = ""
                     leiloes.append(leilao_dados)
                     tabela = ''
                     for item in leiloes:
@@ -92,15 +77,25 @@ def handle_clientes(conn, addr):
             if(client_op == "READ"):
                 leiloes_list = ''
                 for leilao in leiloes:
-                    leiloes_list += f"{leilao}\n"
+                    if(leilao["estado_leilao"] == "Aberto"):
+                        leiloes_list += f"{leilao}\n"
                 print(leiloes_list)
-                conn.send(leiloes_list.encode(encoding=FORMAT))
+                if(leiloes_list == ''):
+                    msg = "Não há leiloes disponíveis"
+                else:
+                    msg = leiloes_list
+                conn.send(msg.encode(encoding=FORMAT))
             elif(client_op == "UPDATE"):
                 leilao_encontrado = ''
                 leiloes_list = ''
                 for leilao in leiloes:
-                    leiloes_list += f"{leilao}\n"
-                conn.send(leiloes_list.encode(encoding=FORMAT))
+                    if(leilao["estado_leilao"] == "Aberto"):
+                        leiloes_list += f"{leilao}\n"
+                if(leiloes_list == ''):
+                    msg = "Não temos leilões disponíveis"
+                else:
+                    msg = leiloes_list
+                conn.send(msg.encode(encoding=FORMAT))
                 id_lance = conn.recv(2048).decode()
                 id_lance = int(id_lance)
                 for leilao in leiloes:
@@ -110,7 +105,27 @@ def handle_clientes(conn, addr):
                     else:
                         conn.send("Insira id entre os apresentados".encode(encoding=FORMAT))
                 conn.send("Certo, agora diga-me o lance a fazer".encode(encoding=FORMAT))
-                conn.recv(2048).decode()
+                msg = ''
+                while(True):
+                    valor_lance = conn.recv(2048).decode()
+                    valor_lance = float(valor_lance)
+                    if(valor_lance < leilao_encontrado["valorInicial"]):
+                        conn.send("Por favor, faça um lance igual ou maior que o lance mínimo".encode(encoding=FORMAT))
+                    else:
+                        if(valor_lance > leilao_encontrado["maior_lance"]):
+                            leilao_encontrado["maior_lance"] = valor_lance
+                            msg = "É o maior lance até o momento!\nQual seu email para que, quando acabar, possamos entrar em contato?"
+                            conn.send(msg.encode(encoding=FORMAT))
+                            email_vencedor = conn.recv(4096).decode()
+                            leilao_encontrado["email_vencedor"] = email_vencedor
+                            conn.send("Dados recebidos e cadastrados! Obrigado".encode(encoding=FORMAT))
+                        elif(valor_lance == leilao_encontrado["maior_lance"]):
+                            msg = "É igual ao maior lance, o anterior ainda fica com o título quando encerrarem."
+                            conn.send(msg.encode(encoding=FORMAT))
+                        else:
+                            msg = "É menor que o maior lance..."
+                            conn.send(msg.encode(encoding=FORMAT))
+                        break
             else:
                 conn.send("Operação inexistente".encode(encoding=FORMAT))
     else:
@@ -124,16 +139,3 @@ def start():
         thread.start()
 
 start()
-"""
-if(leilao_dados.nome.startswith("nome=")):
-    mensagem_separada = leilao_dados.nome.split("=")
-    nome = mensagem_separada[1]
-    conexao_map = { "conn": conn, "addr": addr, "nome": nome, "last": 0 }
-    conexoes.append(conexao_map)
-    enviar_mensagem_individual(conexao_map)
-elif(msg.startswith("msg=")):
-    mensagem_separada = msg.split("=")
-    mensagem = nome + "=" + mensagem_separada[1]
-    mensagens.append(mensagem)
-    enviar_mensagem_todos()
-"""

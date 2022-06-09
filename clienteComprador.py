@@ -27,6 +27,23 @@ def fazer_lance():
         except ValueError:
             print(client.recv(2048).decode(), flush=True)
     print(client.recv(4096).decode(), flush=True)
+    while(True):
+        try:
+            valor_lance = input("Aguardando lance: ")
+            if(float(valor_lance)):
+                client.send(valor_lance.encode(encoding=FORMAT))
+                break
+            else:
+                print("Por favor, insira um valor válido", flush=True)
+        except ValueError:
+            print("Por favor, insira um valor válido", flush=True)
+    msg = client.recv(500000).decode()
+    print(msg)
+    if(msg.startswith("É o maior lance até o momento!")):
+        email = input()
+        client.send(email.encode(encoding=FORMAT))
+        print(client.recv(500000).decode(), flush=True)
+
 
 def iniciar_comprador():
     print("Bem-vindo ao leilão\nDeseja ver os leilões em aberto ou fazer um lance?")
