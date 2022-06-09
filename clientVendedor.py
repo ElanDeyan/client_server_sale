@@ -1,11 +1,6 @@
 import socket
-import threading
 import time
 import json
-
-# Link pra enviar objeto entre sockets
-# https://stackoverflow.com/questions/47391774/send-and-receive-objects-through-sockets-in-python
-
 
 PORT = 50007
 FORMAT = 'utf-8'
@@ -14,7 +9,6 @@ ADDR = (SERVER, PORT)
 CLIENT_ID = '1'
 class ProcessLeilao:
     nome = ''
-    produto = ''
     descProduto = ''
     valorInicial = 0
 
@@ -33,10 +27,6 @@ def criar_leilao():
 def enviar_nome():
     nome = input('Digite o seu nome: ')
     leilao.nome = nome
-
-def enviar_produto():
-    produto = input('Digite o nome do produto a leiloar: ')
-    leilao.produto = produto
 
 def enviar_desc_produto():
     desc_produto = input('Digite uma breve descricao de seu produto: ')
@@ -57,7 +47,6 @@ def valor_inicial_produto():
 
 def iniciar_leilao():
     enviar_nome()
-    enviar_produto()
     enviar_desc_produto()
     valor_inicial_produto()
     criar_leilao()
@@ -96,7 +85,5 @@ def iniciar_vendedor():
         except ValueError:
             client.send("ERROR".encode(encoding=FORMAT))
             print(client.recv(2048).decode(), flush=True)
-    #thread1 = threading.Thread(target=iniciar_leilao)
-    #thread1.start()
 
 iniciar_vendedor()

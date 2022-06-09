@@ -1,7 +1,4 @@
 import socket
-import threading
-import time
-import json
 
 PORT = 50007
 FORMAT = 'utf-8'
