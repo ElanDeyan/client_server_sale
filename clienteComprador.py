@@ -30,23 +30,24 @@ def fazer_lance():
         resp_server = client.recv(4096).decode()
         print(resp_server, flush=True)
         if(resp_server.startswith("[ALERTA]")):
-            return
-        while(True):
-            try:
-                valor_lance = input("Aguardando lance: ")
-                if(float(valor_lance)):
-                    client.send(valor_lance.encode(encoding=FORMAT))
-                    break
-                else:
+            pass
+        else:
+            while(True):
+                try:
+                    valor_lance = input("Aguardando lance: ")
+                    if(float(valor_lance)):
+                        client.send(valor_lance.encode(encoding=FORMAT))
+                        break
+                    else:
+                        print("Por favor, insira um valor válido", flush=True)
+                except ValueError:
                     print("Por favor, insira um valor válido", flush=True)
-            except ValueError:
-                print("Por favor, insira um valor válido", flush=True)
-        msg = client.recv(500000).decode()
-        print(msg)
-        if(msg.startswith("É o maior lance até o momento!")):
-            email = input()
-            client.send(email.encode(encoding=FORMAT))
-            print(client.recv(500000).decode(), flush=True)
+            msg = client.recv(500000).decode()
+            print(msg)
+            if(msg.startswith("É o maior lance até o momento!")):
+                email = input()
+                client.send(email.encode(encoding=FORMAT))
+                print(client.recv(500000).decode(), flush=True)
 
 
 def iniciar_comprador():

@@ -2,7 +2,7 @@ import socket
 import threading
 import json
 
-SERVER_IP = '127.0.0.1'
+SERVER_IP = '127.0.0.1' #socket.gethostbyname(socket.gethostname())
 PORT = 50007
 ADDR = (SERVER_IP, PORT)
 FORMAT = 'utf-8'
